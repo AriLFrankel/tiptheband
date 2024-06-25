@@ -1,0 +1,224 @@
+<!DOCTYPE html>
+<html>
+<style>
+  * {
+    box-sizing: border-box;
+    margin: 0;
+    padding: 0;
+  }
+
+  body {
+    background-color: #f5f7fa;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-direction: column;
+    font-family: sans-serif;
+    font-size: 28px;
+  }
+
+  #bands {
+    list-style-type: none;
+    width: 100%;
+  }
+
+  .band-item {
+    background-color: #fff;
+    border-radius: 3px;
+    box-shadow: 0 2px 3px rgba(0, 0, 0, 0.3);
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 30px;
+    margin: 10px 0;
+    transition: box-shadow 0.3s ease;
+  }
+
+  .band-item:hover {
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.4);
+    cursor: pointer;
+  }
+
+  .band-name {
+    color: #333;
+    padding: 0 15px;
+    flex: 1;
+    font-weight: 300;
+    line-height: 24px;
+    margin: 0;
+    text-decoration: none;
+  }
+
+  input {
+    font-family: sans-serif;
+    border-radius: 3px;
+    border: 1px solid #ddd;
+    padding: 15px;
+    width: 70%;
+    display: block;
+    font-size: 28px;
+    text-align: center;
+    margin: 15px auto;
+    color: rgb(51,51,51);
+    font-weight: 100;
+    text-transform: uppercase;
+    font-weight: 300;
+    line-height: 24px;
+  }
+  
+  #header {
+    position: fixed;
+    top: 0px;
+    width: 100%;
+    backdrop-filter: blur;
+    height: 200px;
+    text-align: center;
+    background: linear-gradient(90deg, rgba(245,247,250,1) 47%, rgba(0,255,246,0.7665660014005602) 100%);
+  }
+
+  h2 {
+    font-weight: 33;
+    font-size: 50px;
+    margin: 10px;
+  }
+
+  #results {
+    width: 100%;
+    margin: 182px auto;
+  }
+
+  .avatar {
+    /* This image is 687 wide by 1024 tall, similar to your aspect ratio */
+    background-image: url('https://i.sstatic.net/Dj7eP.jpg');
+    
+    /* make a square container */
+    width: 50px;
+    height: 50px;
+
+    /* fill the container, preserving aspect ratio, and cropping to fit */
+    background-size: cover;
+
+    /* center the image vertically and horizontally */
+    background-position: top center;
+
+    /* round the edges to a circle with border radius 1/2 container size */
+    border-radius: 50%;
+  }
+
+  @media (max-width: 600px) {
+    .band-item {
+      padding: 10px;
+    }
+
+    input {
+      padding: 10px;
+      margin: 10px auto;
+    }
+
+    .header {
+      width: 80%;
+    }
+  }
+</style>
+<!-- Google tag (gtag.js) -->
+<script async src="https://www.googletagmanager.com/gtag/js?id=G-WWLJWE366X"></script>
+<script>
+  window.dataLayer = window.dataLayer || [];
+  function gtag() { dataLayer.push(arguments); }
+  gtag('js', new Date());
+
+  gtag('config', 'G-WWLJWE366X');
+</script>
+<body>
+  <div id="header">
+    <h2>Tip the Band ATX</h2>
+    <input type="text" id="search" placeholder="SEARCH FOR A BAND TO TIP" />
+  </div>
+  <div id="results">
+    <ul id="bands"></ul>
+  </div>
+  <script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/PapaParse/5.1.0/papaparse.min.js"></script>
+  <script type="text/javascript">
+    const search_input = document.getElementById('search');
+    const bandsNode = document.getElementById('bands');
+
+    let search_term = '';
+    let bands;
+
+    const BANDS = new Promise((resolve, reject) => {
+      const public_spreadsheet_url = 'https://docs.google.com/spreadsheets/d/e/2PACX-1vTBSLX6h70D7pN5fN17kmXtL3fVETxhiVDwm807rf5JJcmBKPuP9HaLsvumWHbmxfUB0n_6BIYDtsKA/pub?output=csv';
+      Papa.parse(public_spreadsheet_url, {
+        download: true,
+        header: true,
+        complete: resolve,
+        error: reject
+      })
+    })
+
+    const name = n => n.Band.replace('The ', '')
+    
+    const fetchBands = async () => {
+      let bands = await BANDS;
+      bands = bands.data
+      bands = bands
+        .filter(({ Band, Venmo: payment }) => {
+          has_term = Band.toLowerCase().includes(search_term.toLowerCase())
+          has_payment = payment.startsWith('https://venmo.com/u') || payment.startsWith('https://www.paypal.com/paypalme')
+          return has_term && has_payment
+        })
+        .reduce((acc, band) => {
+          if (!acc.some(b => b.Band === band.Band)) {
+            acc.push(band)
+          }
+          return acc
+        }, [])
+        .sort((a, b) => {
+          return name(a).localeCompare(name(b))
+        })
+      return bands
+    }
+
+    const showbands = async () => {
+      bandsNode.style.display = 'block';
+      bands = await fetchBands()
+      if (bands.length == 0) {
+        bands = [{
+          Band: 'Band not found. Add them to the list!',
+          Venmo: 'https://docs.google.com/forms/d/e/1FAIpQLScZVbcogLZWQ1KJRgCm2BR-jIjo6JN6LQCRPbvrCbHlTt6R5A/viewform?usp=sf_link'
+        }]
+      }
+      bandsNode.innerHTML = '';
+      bands.forEach(band => {
+        const li = document.createElement('li');
+        li.classList.add('band-item');
+
+        const avatar = document.createElement('div');
+        avatar.classList.add('avatar');
+        if (band.Image) {
+          avatar.style.backgroundImage = `url('${band.Image}')`;
+        } else {
+          initials = 
+          avatar.style.backgroundImage = `url('https://ui-avatars.com/api/?name=${name(band)}')`;
+        }
+        li.appendChild(avatar);
+
+        const bandName = document.createElement('a');
+        bandName.innerText = band.Band.toUpperCase();
+        bandName.href = band.Venmo;
+        bandName.classList.add('band-name');
+        li.appendChild(bandName);
+
+        bandsNode.appendChild(li);
+      });
+    };
+
+    search_input.addEventListener('input', e => {
+      search_term = e.target.value;
+      showbands(search_term);
+    });
+    bandsNode.style.display = 'none';
+  </script>
+
+</body>
+
+</html>
