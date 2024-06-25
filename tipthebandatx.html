@@ -191,13 +191,14 @@
       bands.forEach(band => {
         const li = document.createElement('li');
         li.classList.add('band-item');
-
+        li.addEventListener('click', () => {
+          window.open(band.Venmo, '_blank');
+        });
         const avatar = document.createElement('div');
         avatar.classList.add('avatar');
         if (band.Image) {
           avatar.style.backgroundImage = `url('${band.Image}')`;
         } else {
-          initials = 
           avatar.style.backgroundImage = `url('https://ui-avatars.com/api/?name=${name(band)}')`;
         }
         li.appendChild(avatar);
@@ -206,10 +207,11 @@
         bandName.innerText = band.Band.toUpperCase();
         bandName.href = band.Venmo;
         bandName.classList.add('band-name');
-        li.appendChild(bandName);
 
+        li.appendChild(bandName);
         bandsNode.appendChild(li);
       });
+
     };
 
     search_input.addEventListener('input', e => {
