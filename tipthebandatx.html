@@ -164,7 +164,10 @@
       bands = bands
         .filter(({ Band, Venmo: payment }) => {
           has_term = Band.toLowerCase().includes(search_term.toLowerCase())
-          has_payment = payment.startsWith('https://venmo.com/u') || payment.startsWith('https://www.paypal.com/paypalme')
+          has_payment = ['https://venmo.com/u', 'https://www.paypal.com/paypalme', 'https://account.venmo.com/u']
+            .reduce((acc, cur) => {
+              return acc || payment.startsWith(cur)
+            }, false)
           return has_term && has_payment
         })
         .reduce((acc, band) => {
