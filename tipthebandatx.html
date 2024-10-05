@@ -14,7 +14,7 @@
     justify-content: center;
     flex-direction: column;
     font-family: sans-serif;
-    font-size: 28px;
+    font-size: 42px;
   }
 
   #bands {
@@ -44,7 +44,7 @@
     padding: 0 15px;
     flex: 1;
     font-weight: 300;
-    line-height: 24px;
+    line-height: 42px;
     margin: 0;
     text-decoration: none;
   }
@@ -56,14 +56,14 @@
     padding: 15px;
     width: 70%;
     display: block;
-    font-size: 28px;
+    font-size: 42px;
     text-align: center;
     margin: 15px auto;
     color: rgb(51,51,51);
     font-weight: 100;
     text-transform: uppercase;
     font-weight: 300;
-    line-height: 24px;
+    line-height: 42px;
   }
   
   #header {
@@ -78,7 +78,7 @@
 
   h2 {
     font-weight: 33;
-    font-size: 50px;
+    font-size: 56px;
     margin: 10px;
   }
 
@@ -92,8 +92,8 @@
     background-image: url('https://i.sstatic.net/Dj7eP.jpg');
     
     /* make a square container */
-    width: 50px;
-    height: 50px;
+    width: 100px;
+    height: 100px;
 
     /* fill the container, preserving aspect ratio, and cropping to fit */
     background-size: cover;
@@ -108,15 +108,16 @@
   @media (max-width: 600px) {
     .band-item {
       padding: 10px;
+      min-height: 250px;
     }
 
     input {
       padding: 10px;
-      margin: 10px auto;
     }
 
     .header {
       width: 80%;
+      min-height: 100px;
     }
   }
 </style>
@@ -183,7 +184,7 @@
       bands = await fetchBands()
       if (bands.length == 0) {
         bands = [{
-          Band: 'Band not found. Add them to the list!',
+          Band: 'Band not found. Use this form to help!',
           Venmo: 'https://docs.google.com/forms/d/e/1FAIpQLScZVbcogLZWQ1KJRgCm2BR-jIjo6JN6LQCRPbvrCbHlTt6R5A/viewform?usp=sf_link'
         }]
       }
@@ -194,14 +195,16 @@
         li.addEventListener('click', () => {
           window.open(band.Venmo, '_blank');
         });
-        const avatar = document.createElement('div');
-        avatar.classList.add('avatar');
-        if (band.Image) {
-          avatar.style.backgroundImage = `url('${band.Image}')`;
-        } else {
-          avatar.style.backgroundImage = `url('https://ui-avatars.com/api/?name=${name(band)}')`;
+        if (!band.Band.startsWith('Band not found')) {
+          const avatar = document.createElement('div');
+          avatar.classList.add('avatar');
+          if (band.Image) {
+            avatar.style.backgroundImage = `url('${band.Image}')`;
+          } else {
+            avatar.style.backgroundImage = `url('https://ui-avatars.com/api/?name=${name(band)}')`;
+          }
+          li.appendChild(avatar);
         }
-        li.appendChild(avatar);
 
         const bandName = document.createElement('a');
         bandName.innerText = band.Band.toUpperCase();
